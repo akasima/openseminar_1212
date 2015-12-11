@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Schema;
 use Xpressengine\Support\Migration;
 
-class PointLog implements Migration
+class PointLogs implements Migration
 {
     /**
      * install
@@ -14,8 +14,8 @@ class PointLog implements Migration
      */
     public function install()
     {
-        if (Schema::hasTable('point_log') === false) {
-            Schema::create('point_log', function (Blueprint $table) {
+        if (Schema::hasTable('point_logs') === false) {
+            Schema::create('point_logs', function (Blueprint $table) {
                 $table->increments('id');
                 $table->string('userId', 255);
                 $table->string('point', 255);

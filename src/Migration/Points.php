@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Schema;
 use Xpressengine\Support\Migration;
 
-class Point implements Migration
+class Points implements Migration
 {
     /**
      * install
@@ -14,8 +14,8 @@ class Point implements Migration
      */
     public function install()
     {
-        if (Schema::hasTable('point') === false) {
-            Schema::create('point', function (Blueprint $table) {
+        if (Schema::hasTable('points') === false) {
+            Schema::create('points', function (Blueprint $table) {
                 $table->string('userId', 255);
                 $table->string('point', 255);
                 $table->timestamp('createdAt');

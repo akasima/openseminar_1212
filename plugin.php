@@ -181,9 +181,9 @@ class Plugin extends AbstractPlugin
     public function install()
     {
         // implement code
-        $m = new Migration\Point();
+        $m = new Migration\Points();
         $m->install();
-        $m = new Migration\PointLog();
+        $m = new Migration\PointLogs();
         $m->install();
 
         parent::install();

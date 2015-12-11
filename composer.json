@@ -1,0 +1,43 @@
+{
+  "name": "xpressengine-plugin/openseminar_1212",
+  "description": "This Package is Xpressengine Plugin - Open seminar 2015-12-12.",
+  "keywords": [
+    "xpressengine",
+    "plugin"
+  ],
+  "license": "LGPL-2.0",
+  "version": "1.0.0",
+  "type": "xpressengine-plugin",
+  "support": {
+    "email": "email@email.com"
+  },
+  "authors": [
+    {
+      "name": "input your name",
+      "email": "input@your.email",
+      "homepage": "http://mysite.com",
+      "role": "Developer"
+    }
+  ],
+  "extra": {
+    "xpressengine": {
+      "title": "Open seminar 2015-12-12",
+      "icon": "myicon.png",
+      "component": []
+    }
+  },
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "http://packagist.xpressengine.io/"
+    }
+  ],
+  "require": {
+
+  },
+  "autoload": {
+    "psr-4": {
+      "Akasima\\OpenSeminar\\": "src/"
+    }
+  }
+}

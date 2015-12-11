@@ -1,11 +1,18 @@
 <?php
 namespace Akasima\OpenSeminar;
 
+use Member;
 use Frontend;
 use Presenter;
 use Route;
+use Xpressengine\Comment\CommentEntity;
+use Xpressengine\Document\DocumentEntity;
 use Xpressengine\Http\Request;
+use Xpressengine\Member\Entities\MemberEntityInterface;
 use Xpressengine\Plugin\AbstractPlugin;
+use Auth;
+use Akasima\OpenSeminar\Model\Point;
+use Akasima\OpenSeminar\Model\PointLog;
 
 class Plugin extends AbstractPlugin
 {
@@ -19,11 +26,111 @@ class Plugin extends AbstractPlugin
         // implement code
 
         $this->route();
+
+        $this->registerSettingsMenu();
+
+        $this->registerCommand();
+
+        $this->pointInterception();
+
+    }
+
+    protected function registerCommand()
+    {
+        $commands = [Command\RemoveLog::class];
+        app('events')->listen('artisan.start', function ($artisan) use ($commands) {
+            $artisan->resolveCommands($commands);
+        });
+    }
+
+    protected function registerSettingsMenu()
+    {
+        app('xe.register')->push('settings/menu', 'contents.point', [
+            'title' => '포인트',
+            'display' => true,
+            'description' => 'blur blur~',
+            'link' => route('manage.openseminar_1212.point_log'),
+            'ordering' => 3001
+        ]);
+    }
+
+    /**
+     * 댓글 등록 시 글 작성자에게 이메일 발송
+     * 인터셉셥 사용
+     *
+     * @see http://xpressengine.io/docs/3.0/Interception#사용법
+     * @see http://xpressengine.io/plugin/xe_aoplist
+     * @return void
+     */
+    protected function pointInterception()
+    {
+        intercept('Comment@add', 'openseminar_1212::add_comment_point', function($method, CommentEntity $comment, MemberEntityInterface $user = null) {
+            // CommentHandler::add() 실행
+            $result = $method($comment, $user);
+
+            // 댓글 작성자
+            /** @var MemberEntityInterface $writer */
+            $writer = Auth::user();
+
+            $pointLog = new PointLog();
+            $pointLog->userId = $writer->getId();
+            $pointLog->point = 1;
+//            관리자에서 설정한 값으로 사용하도록
+//            $config = app('xe.config')->get('openseminar');
+//            $pointLog->point = $config->get('comment_point');
+            $pointLog->createdAt = date('Y-m-d H:i:s');
+            $pointLog->save();
+
+            $point = Point::find($writer->getId());
+            if ($point === null) {
+                $point = new Point();
+            }
+            $point->userId = $writer->getId();
+            $point->point = $pointLog->where('userId', $writer->getId())->sum('point');
+            $point->save();
+
+            // CommentHandler::add() 결과 반환
+            return $result;
+        });
+
+        intercept('Document@add', 'openseminar_1212::add_document_point', function($method, DocumentEntity $doc) {
+            // DocumentHandler::add() 실행
+            $result = $method($doc);
+
+            // 문서 작성자
+            /** @var MemberEntityInterface $writer */
+            $writer = Auth::user();
+
+            $pointLog = new PointLog();
+            $pointLog->userId = $writer->getId();
+            $pointLog->point = 2;
+//            관리자에서 설정한 값으로 사용하도록
+//            $config = app('xe.config')->get('openseminar');
+//            $pointLog->point = $config->get('document_point');
+            $pointLog->createdAt = date('Y-m-d H:i:s');
+            $pointLog->save();
+
+            $point = Point::find($writer->getId());
+            if ($point === null) {
+                $point = new Point();
+            }
+            $point->userId = $writer->getId();
+            $point->point = $pointLog->where('userId', $writer->getId())->sum('point');
+            $point->save();
+
+            // DocumentHandler::add() 결과 반환
+            return $result;
+        });
     }
 
     protected function route()
     {
         // implement code
+        Route::settings(self::getId(), function () {
+            Route::get('/', ['as' => 'manage.openseminar_1212.index', 'uses' => 'ManagerController@index']);
+            Route::post('/', ['as' => 'manage.openseminar_1212.updateConfig', 'uses' => 'ManagerController@updateConfig']);
+            Route::get('/pointLog', ['as' => 'manage.openseminar_1212.point_log', 'uses' => 'ManagerController@pointLog']);
+        }, ['namespace' => 'Akasima\OpenSeminar\Controller']);
 
         Route::fixed(
             $this->getId(),
@@ -63,7 +170,6 @@ class Plugin extends AbstractPlugin
     public function activate($installedVersion = null)
     {
         // implement code
-
         parent::activate($installedVersion);
     }
 
@@ -75,6 +181,10 @@ class Plugin extends AbstractPlugin
     public function install()
     {
         // implement code
+        $m = new Migration\Point();
+        $m->install();
+        $m = new Migration\PointLog();
+        $m->install();
 
         parent::install();
     }
@@ -106,5 +216,10 @@ class Plugin extends AbstractPlugin
         // implement code
 
         parent::update($installedVersion);
+    }
+
+    public function getSettingsURI()
+    {
+        return route('manage.openseminar_1212.index');
     }
 }

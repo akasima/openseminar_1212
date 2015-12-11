@@ -23,7 +23,24 @@
     "xpressengine": {
       "title": "Open seminar 2015-12-12",
       "icon": "myicon.png",
-      "component": []
+      "component": {
+        "module/openseminar_1212@myModule": {
+          "class": "Akasima\\OpenSeminar\\Module\\MyModule",
+          "name": "MyModule",
+          "description": "MyModule",
+          "screenshot" : [
+            "/plugins/openseminar_1212/assets/moduleScreenShot.png"
+          ]
+        },
+        "module/openseminar_1212@myModule/skin/openseminar_1212@default": {
+          "class": "Akasima\\OpenSeminar\\Skin\\DefaultSkin",
+          "name": "MyModule 기본 스킨",
+          "description": "MyModule 기본 스킨.",
+          "screenshot" : [
+            "/plugins/openseminar_1212/assets/skinScreenShot.png"
+          ]
+        }
+      }
     }
   },
   "repositories": [

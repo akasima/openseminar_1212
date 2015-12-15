@@ -181,13 +181,34 @@ class Plugin extends AbstractPlugin
     public function install()
     {
         // implement code
-        $m = new Migration\Points();
-        $m->install();
-        $m = new Migration\PointLogs();
-        $m->install();
+		// #1 plugin 에서 테이블 생성은 Migration 을 사용하지 않고 Schema 직접 사용
+		$this->createTables();
 
         parent::install();
     }
+
+	protected function createTables()
+	{
+        if (Schema::hasTable('points') === false) {
+            Schema::create('points', function (Blueprint $table) {
+                $table->string('userId', 255);
+                $table->string('point', 255);
+                $table->timestamp('createdAt');
+                $table->timestamp('updatedAt');
+
+                $table->primary(array('userId'));
+            });
+        }
+
+        if (Schema::hasTable('point_logs') === false) {
+            Schema::create('point_logs', function (Blueprint $table) {
+                $table->increments('id');
+                $table->string('userId', 255);
+                $table->string('point', 255);
+                $table->timestamp('createdAt');
+            });
+        }
+	}
 
     /**
      * 해당 플러그인이 설치된 상태라면 true, 설치되어있지 않다면 false를 반환한다.

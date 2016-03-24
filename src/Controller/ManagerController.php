@@ -3,7 +3,7 @@ namespace Akasima\OpenSeminar\Controller;
 
 use Akasima\OpenSeminar\Model\PointLog;
 use App\Http\Controllers\Controller;
-use Presenter;
+use XePresenter;
 use Redirect;
 use Xpressengine\Config\ConfigEntity;
 use Xpressengine\Http\Request;
@@ -24,7 +24,7 @@ class ManagerController extends Controller
             $configManager->add('openseminar', $config->getPureAll());
         }
 
-        return Presenter::make('openseminar_1212::views/manager/index', [
+        return XePresenter::make('openseminar_1212::views.manager.index', [
             'config' => $config,
         ]);
     }
@@ -45,7 +45,7 @@ class ManagerController extends Controller
     {
         $list = PointLog::orderBy('createdAt', 'desc')->get();
 
-        return Presenter::make('openseminar_1212::views/manager/pointLog', [
+        return XePresenter::make('openseminar_1212::views.manager.pointLog', [
             'list' => $list
         ]);
     }

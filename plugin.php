@@ -1,18 +1,22 @@
 <?php
 namespace Akasima\OpenSeminar;
 
-use Member;
-use Frontend;
-use Presenter;
-use Route;
-use Xpressengine\Comment\CommentEntity;
-use Xpressengine\Document\DocumentEntity;
-use Xpressengine\Http\Request;
-use Xpressengine\Member\Entities\MemberEntityInterface;
-use Xpressengine\Plugin\AbstractPlugin;
 use Auth;
+use Route;
+use Schema;
+use XeFrontend;
+use XePresenter;
+use Illuminate\Database\Schema\Blueprint;
+use Xpressengine\Config\ConfigEntity;
+use Xpressengine\Http\Request;
+use Xpressengine\Plugin\AbstractPlugin;
 use Akasima\OpenSeminar\Model\Point;
 use Akasima\OpenSeminar\Model\PointLog;
+use Xpressengine\Plugins\Board\Models\Board;
+use Xpressengine\Plugins\Comment\Handler as CommentHandler;
+use Xpressengine\Plugins\Board\Handler as BoardHandler;
+use Xpressengine\Plugins\Comment\Models\Comment;
+use Xpressengine\User\UserInterface;
 
 class Plugin extends AbstractPlugin
 {
@@ -23,8 +27,6 @@ class Plugin extends AbstractPlugin
      */
     public function boot()
     {
-        // implement code
-
         $this->route();
 
         $this->registerSettingsMenu();
@@ -64,63 +66,71 @@ class Plugin extends AbstractPlugin
      */
     protected function pointInterception()
     {
-        intercept('Comment@add', 'openseminar_1212::add_comment_point', function($method, CommentEntity $comment, MemberEntityInterface $user = null) {
-            // CommentHandler::add() 실행
-            $result = $method($comment, $user);
+        // 게시물 등록 인터셉트
+        intercept(
+            BoardHandler::class . '@add',
+            static::getId() . '::board.add',
+            function ($addFunc, array $args, UserInterface $user, ConfigEntity $config) {
+                /** @var Board $board */
+                $board = $addFunc($args, $user, $config);
 
-            // 댓글 작성자
-            /** @var MemberEntityInterface $writer */
-            $writer = Auth::user();
+                $pointLog = new PointLog();
+                $pointLog->userId = $user->getId();
+                $pointLog->point = 2;
 
-            $pointLog = new PointLog();
-            $pointLog->userId = $writer->getId();
-            $pointLog->point = 1;
-//            관리자에서 설정한 값으로 사용하도록
-//            $config = app('xe.config')->get('openseminar');
-//            $pointLog->point = $config->get('comment_point');
-            $pointLog->createdAt = date('Y-m-d H:i:s');
-            $pointLog->save();
-
-            $point = Point::find($writer->getId());
-            if ($point === null) {
-                $point = new Point();
-            }
-            $point->userId = $writer->getId();
-            $point->point = $pointLog->where('userId', $writer->getId())->sum('point');
-            $point->save();
-
-            // CommentHandler::add() 결과 반환
-            return $result;
-        });
-
-        intercept('Document@add', 'openseminar_1212::add_document_point', function($method, DocumentEntity $doc) {
-            // DocumentHandler::add() 실행
-            $result = $method($doc);
-
-            // 문서 작성자
-            /** @var MemberEntityInterface $writer */
-            $writer = Auth::user();
-
-            $pointLog = new PointLog();
-            $pointLog->userId = $writer->getId();
-            $pointLog->point = 2;
 //            관리자에서 설정한 값으로 사용하도록
 //            $config = app('xe.config')->get('openseminar');
 //            $pointLog->point = $config->get('document_point');
-            $pointLog->createdAt = date('Y-m-d H:i:s');
-            $pointLog->save();
 
-            $point = Point::find($writer->getId());
-            if ($point === null) {
-                $point = new Point();
+                $pointLog->createdAt = date('Y-m-d H:i:s');
+                $pointLog->save();
+
+                $point = Point::find($user->getId());
+                if ($point === null) {
+                    $point = new Point();
+                }
+                $point->userId = $user->getId();
+                $point->point = $pointLog->where('userId', $user->getId())->sum('point');
+                $point->save();
+
+                return $board;
             }
-            $point->userId = $writer->getId();
-            $point->point = $pointLog->where('userId', $writer->getId())->sum('point');
-            $point->save();
+        );
 
-            // DocumentHandler::add() 결과 반환
-            return $result;
-        });
+        // 댓글 등록 인터셉트트
+       intercept(
+            CommentHandler::class . '@create',
+            static::getId() . '::comment.add',
+            function ($addFunc, array $inputs, UserInterface $user = null) {
+                /** @var Comment $comment */
+                $comment = $addFunc($inputs, $user);
+
+                if ($user == null) {
+                    $user = Auth::user();
+                }
+
+                $pointLog = new PointLog();
+                $pointLog->userId = $user->getId();
+                $pointLog->point = 1;
+
+//            관리자에서 설정한 값으로 사용하도록
+//            $config = app('xe.config')->get('openseminar');
+//            $pointLog->point = $config->get('comment_point');
+
+                $pointLog->createdAt = date('Y-m-d H:i:s');
+                $pointLog->save();
+
+                $point = Point::find($user->getId());
+                if ($point === null) {
+                    $point = new Point();
+                }
+                $point->userId = $user->getId();
+                $point->point = $pointLog->where('userId', $user->getId())->sum('point');
+                $point->save();
+
+                return $comment;
+            }
+        );
     }
 
     protected function route()
@@ -150,7 +160,7 @@ class Plugin extends AbstractPlugin
                             Frontend::css($this->asset('assets/style.css'))->load();
 
                             // output
-                            return Presenter::make('openseminar_1212::views.index', ['title' => $title]);
+                            return Presenter::make('index', ['title' => $title]);
 
                         }
                     ]
@@ -221,7 +231,6 @@ class Plugin extends AbstractPlugin
     public function checkInstall($installedVersion = null)
     {
         // implement code
-
         return parent::checkInstall($installedVersion);
     }
 
@@ -235,7 +244,6 @@ class Plugin extends AbstractPlugin
     public function update($installedVersion = null)
     {
         // implement code
-
         parent::update($installedVersion);
     }
 

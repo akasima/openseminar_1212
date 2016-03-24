@@ -133,4 +133,15 @@ class MyModule extends AbstractModule
     {
         // TODO: Implement deleteMenu() method.
     }
+
+    /**
+     * Get menu type's item object
+     *
+     * @param string $id item id of menu type
+     * @return mixed
+     */
+    public function getTypeItem($id)
+    {
+        // TODO: Implement getTypeItem() method.
+    }
 }

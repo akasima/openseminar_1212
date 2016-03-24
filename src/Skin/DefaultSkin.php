@@ -8,6 +8,6 @@ class DefaultSkin extends AbstractSkin
 {
     public function render()
     {
-        return View::make('openseminar_1212::views/user/' . $this->view, $this->data);
+        return View::make(sprintf('openseminar_1212::views.user.%s', $this->view), $this->data);
     }
 }

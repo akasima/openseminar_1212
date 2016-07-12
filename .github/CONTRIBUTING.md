@@ -14,7 +14,7 @@ master 브랜치로 보내실 경우 간단한 댓글과 함께 Close 될 것입
 XE3는 코어와 기본으로 배포되는 *번들* 플러그인으로 구성되어 있습니다.
 
 번들 플러그인은 [Alice 테마](https://github.com/xpressengine/plugin-alice),
-[게시판](https://github.com/xpressengine/plugin-board), [댓르](https://github.com/xpressengine/plugin-comment) 등 여러 플러그인이 있습니다.
+[게시판](https://github.com/xpressengine/plugin-board), [댓글](https://github.com/xpressengine/plugin-comment) 등 여러 플러그인이 있습니다.
 
 발생한 문제점에 대해서 해결된 코드를 PR로 보내더라도 처리해할 저장소가 맞지 않다면 PR을 합칠 수 없습니다.
 
@@ -26,5 +26,7 @@ Github REAMDE.md 에는 [컨트리뷰터](https://github.com/xpressengine/xpress
 
 ## PR 보내는 방법
 1. XE3 저장소를 포크합니다.
-https://github.com/xpressengine/xpressengine 에서 Fork 버튼을 클릭합니다.
+https://github.com/xpressengine/xpressengine 에서 저장소를 포크 합니다.
+
+
 
